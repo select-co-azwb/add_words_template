@@ -1,10 +1,12 @@
 # Digital A-Z Word Bank App Template
 
-This repository is the clean source template for each student's individual App.
+This is the clean source template for each student's individual App.
 
-## Student-specific GitHub settings
+## Files to configure
 
-In `index.html`, replace only these three placeholder values:
+### GitHub App
+
+In `index.html`, replace only:
 
 1. `PASTE_PUBLISHED_SHEET_URL_HERE`
 2. `PASTE_SPREADSHEET_ID_HERE`
@@ -12,10 +14,21 @@ In `index.html`, replace only these three placeholder values:
 
 Do not change `DISCOVERY_URL`, `courseDays`, or `EXTRA_TABS`.
 
+### Apps Script Bridge
+
+Copy `setup/Bridge.gs` into the student's standalone Apps Script Bridge project. Replace only:
+
+1. `PASTE_SPREADSHEET_ID_HERE`
+2. `PASTE_GITHUB_PAGES_APP_URL_HERE`
+
+Run `setupBridge`, deploy the Bridge as a web app, and put its `/exec` URL into `index.html`. After GitHub Pages is live, run `getPersonalAccessLink` to obtain the student's personal connection link.
+
+Never put the access token directly in GitHub.
+
 ## Day access
 
-Day access is not controlled in GitHub. Change `Admin Settings!B1` in the student's Google Sheet. The App and Bridge will then allow Day 1 through that number. The A-Z Word Bank, Everyday Phrasal Verbs, Business Phrasal Verbs, and Proverbs remain available for study.
+Change `Admin Settings!B1` in the student's Google Sheet. Study and Add & Manage will then allow Day 1 through that number. The A-Z Word Bank, Everyday Phrasal Verbs, Business Phrasal Verbs, and Proverbs remain available for study.
 
 ## Publishing
 
-Enable GitHub Pages only after the three student-specific placeholders have been replaced.
+Do not deploy this template repository itself. Create each student's repository with **Use this template**, configure the placeholders, and then enable GitHub Pages in that student's repository.
