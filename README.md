@@ -19,11 +19,8 @@ Do not change `DISCOVERY_URL`, `courseDays`, or `EXTRA_TABS`.
 Copy `setup/Bridge.gs` into the student's standalone Apps Script Bridge project. Replace only:
 
 1. `PASTE_SPREADSHEET_ID_HERE`
-2. `PASTE_GITHUB_PAGES_APP_URL_HERE`
 
-Run `setupBridge`, deploy the Bridge as a web app, and put its `/exec` URL into `index.html`. After GitHub Pages is live, run `getPersonalAccessLink` to obtain the student's personal connection link.
-
-Never put the access token directly in GitHub.
+Run `setupBridge`, deploy the Bridge as a web app, and put its `/exec` URL into `index.html`. After GitHub Pages is live, give the student the ordinary GitHub Pages URL. No personal link or connection code is required.
 
 ## Day access
 
