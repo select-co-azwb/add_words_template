@@ -1,8 +1,7 @@
-const BRIDGE_VERSION = '1.0-template';
+const BRIDGE_VERSION = '1.1-template';
 
-// Replace only these two values for each student.
+// Replace this value for each student.
 const STUDENT_SPREADSHEET_ID = 'PASTE_SPREADSHEET_ID_HERE';
-const STUDENT_APP_URL = 'PASTE_GITHUB_PAGES_APP_URL_HERE';
 
 function setupBridge() {
   if (STUDENT_SPREADSHEET_ID === 'PASTE_SPREADSHEET_ID_HERE') {
@@ -10,53 +9,16 @@ function setupBridge() {
   }
 
   const properties = PropertiesService.getScriptProperties();
-  let token = properties.getProperty('ACCESS_TOKEN');
 
-  if (!token) {
-    token =
-      Utilities.getUuid().replace(/-/g, '') +
-      Utilities.getUuid().replace(/-/g, '');
-  }
+  properties.setProperty(
+    'SPREADSHEET_ID',
+    STUDENT_SPREADSHEET_ID
+  );
 
-  properties.setProperties({
-    SPREADSHEET_ID: STUDENT_SPREADSHEET_ID,
-    ACCESS_TOKEN: token
-  });
-
+  properties.deleteProperty('ACCESS_TOKEN');
   properties.deleteProperty('MAX_ACCESSIBLE_DAY');
 
   console.log('Bridge setup complete.');
-  console.log('PERSONAL ACCESS LINK: ' + buildPersonalAccessLink_(token));
-}
-
-function getPersonalAccessLink() {
-  const token = PropertiesService
-    .getScriptProperties()
-    .getProperty('ACCESS_TOKEN');
-
-  if (!token) {
-    throw new Error('Run setupBridge first.');
-  }
-
-  const link = buildPersonalAccessLink_(token);
-  console.log('PERSONAL ACCESS LINK: ' + link);
-  return link;
-}
-
-function buildPersonalAccessLink_(token) {
-  const appUrl = cleanText_(STUDENT_APP_URL);
-
-  if (
-    !appUrl ||
-    appUrl === 'PASTE_GITHUB_PAGES_APP_URL_HERE' ||
-    !/^https:\/\//i.test(appUrl)
-  ) {
-    throw new Error('Enter the student GitHub Pages App URL first.');
-  }
-
-  return appUrl.replace(/#.*$/, '') +
-    '#token=' +
-    encodeURIComponent(token);
 }
 
 function doGet(e) {
@@ -79,10 +41,6 @@ function doPost(e) {
   try {
     const settings = getSettings_();
     const request = parseRequest_(e);
-
-    if (!safeEquals_(request.token, settings.accessToken)) {
-      throw new Error('Unauthorized request.');
-    }
 
     const action = cleanText_(request.action).toLowerCase();
     const spreadsheet = SpreadsheetApp.openById(settings.spreadsheetId);
@@ -193,9 +151,8 @@ function doPost(e) {
 function getSettings_() {
   const properties = PropertiesService.getScriptProperties();
   const spreadsheetId = properties.getProperty('SPREADSHEET_ID');
-  const accessToken = properties.getProperty('ACCESS_TOKEN');
 
-  if (!spreadsheetId || !accessToken) {
+  if (!spreadsheetId) {
     throw new Error(
       'Bridge setup is incomplete. Run setupBridge first.'
     );
@@ -224,7 +181,6 @@ function getSettings_() {
 
   return {
     spreadsheetId: spreadsheetId,
-    accessToken: accessToken,
     maxAccessibleDay: maxAccessibleDay
   };
 }
@@ -429,21 +385,6 @@ function cleanText_(value) {
   return value == null ? '' : String(value).trim();
 }
 
-function safeEquals_(left, right) {
-  const a = String(left || '');
-  const b = String(right || '');
-  let difference = a.length ^ b.length;
-  const length = Math.max(a.length, b.length);
-
-  for (let i = 0; i < length; i++) {
-    difference |=
-      (a.charCodeAt(i) || 0) ^
-      (b.charCodeAt(i) || 0);
-  }
-
-  return difference === 0;
-}
-
 function jsonResponse_(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
@@ -461,28 +402,13 @@ function errorResponse_(error) {
 
 /** Read-only test: lists the Days currently released. */
 function testListAccessibleDays() {
-  const settings = getSettings_();
   const testEvent = {
     postData: {
       contents: JSON.stringify({
-        action: 'days',
-        token: settings.accessToken
+        action: 'days'
       })
     }
   };
 
   console.log(doPost(testEvent).getContent());
-}
-function rotateAccessToken() {
-  const newToken =
-    Utilities.getUuid().replace(/-/g, '') +
-    Utilities.getUuid().replace(/-/g, '');
-
-  PropertiesService
-    .getScriptProperties()
-    .setProperty('ACCESS_TOKEN', newToken);
-
-  console.log('Access token rotated successfully.');
-  console.log('NEW PERSONAL ACCESS LINK: ' + buildPersonalAccessLink_(newToken));
-  return newToken;
 }
