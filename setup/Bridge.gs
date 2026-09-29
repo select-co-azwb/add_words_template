@@ -2,6 +2,12 @@ const BRIDGE_VERSION = '1.1-template';
 
 // Replace this value for each student.
 const STUDENT_SPREADSHEET_ID = 'PASTE_SPREADSHEET_ID_HERE';
+const EXTRA_STUDY_SHEETS = [
+  'A-Z Word Bank',
+  'Everyday Phrasal Verbs',
+  'Business Phrasal Verbs',
+  'Proverbs'
+];
 
 function setupBridge() {
   if (STUDENT_SPREADSHEET_ID === 'PASTE_SPREADSHEET_ID_HERE') {
@@ -52,11 +58,31 @@ function doPost(e) {
         days: getAccessibleDayNames_(
           spreadsheet,
           settings.maxAccessibleDay
+        ),
+        studySheets: getAccessibleStudyNames_(
+          spreadsheet,
+          settings.maxAccessibleDay
         )
       });
     }
 
     const sheetName = cleanText_(request.sheet);
+
+    if (action === 'study') {
+      const studySheet = getAccessibleStudySheet_(
+        spreadsheet,
+        sheetName,
+        settings.maxAccessibleDay
+      );
+
+      return jsonResponse_({
+        ok: true,
+        action: 'study',
+        sheet: sheetName,
+        cards: getStudyCards_(studySheet)
+      });
+    }
+
     const sheet = getAccessibleDaySheet_(
       spreadsheet,
       sheetName,
@@ -209,6 +235,37 @@ function getAccessibleDayNames_(spreadsheet, maxDay) {
     })
     .sort(function(a, b) {
       return getDayNumber_(a) - getDayNumber_(b);
+    });
+}
+
+function getAccessibleStudyNames_(spreadsheet, maxDay) {
+  const names = getAccessibleDayNames_(spreadsheet, maxDay);
+  EXTRA_STUDY_SHEETS.forEach(function(name) {
+    if (spreadsheet.getSheetByName(name)) {
+      names.push(name);
+    }
+  });
+  return names;
+}
+
+function getAccessibleStudySheet_(spreadsheet, sheetName, maxDay) {
+  if (!getAccessibleStudyNames_(spreadsheet, maxDay).includes(sheetName)) {
+    throw new Error('This study set is not available.');
+  }
+  return spreadsheet.getSheetByName(sheetName);
+}
+
+function getStudyCards_(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+
+  return sheet.getRange(2, 1, lastRow - 1, 2)
+    .getDisplayValues()
+    .map(function(row) {
+      return [cleanText_(row[0]), cleanText_(row[1])];
+    })
+    .filter(function(pair) {
+      return pair[0] && pair[1];
     });
 }
 
